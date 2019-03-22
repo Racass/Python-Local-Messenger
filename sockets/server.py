@@ -42,19 +42,19 @@ class IMS(object):
             peer, addr = sock.accept()
             peers.append(peer)
             while True:
-                try:
-                    message = peer.recv(1024)
-                    if("101:" in message.decode()):
-                        self.addNewCliente(message, peer)
-                        continue
-                    print(message.decode())
-                    for other in peers:
-                        if peer != other:
-                            other.sendall(message)
-                except ConnectionResetError:
-                    print(clientes[peer] + " se desconectou")
-                    peers.remove(peer)
-                    clientes.pop(peer)
+                #try:
+                message = peer.recv(1024)
+                if("101:" in message.decode()):
+                    self.addNewCliente(message, peer)
+                    continue
+                print(message.decode())
+                for other in peers:
+                    if peer != other:
+                        other.sendall(message)
+                #except ConnectionResetError:
+                #    print(clientes[peer] + " se desconectou")
+                #    peers.remove(peer)
+                #    clientes.pop(peer)
         
         def addNewCliente(self, message, peer):
             clienteName = message.decode().replace("101:", "")

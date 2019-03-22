@@ -10,8 +10,8 @@ class cliente():
         self.qwd = qwd
         try:
             self.sock.connect((IP, porta,))
-        except ConnectionRefusedError:
-                print('Conexão recusada')
+        except ConnectionRefusedError as e:
+                print(e)
                 return
         self.name = clientName
         self.sysSendMsg(101, self.name)
