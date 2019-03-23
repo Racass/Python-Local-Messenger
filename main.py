@@ -10,8 +10,10 @@ from PyQt5.QtCore import *
 from PyQt5 import QtWidgets
 
 from sockets.client import cliente
+from sockets.server import Controller
 
 class RafacaMsg(BaseWidget):
+    isServer = False
     def __init__(self, *args, **kwargs):
         super().__init__("")
         #Definition of the forms fields
@@ -24,6 +26,7 @@ class RafacaMsg(BaseWidget):
         self.IP = ControlText("Endereço IP: ")
         self.host = ControlText("Porta do servidor: ")
         self.conn = ControlButton("Conectar")
+        self.srv = ControlButton("Iniciar servidor")
         self.Errors = ControlTextArea("")
         
         self.Errors.enabled = False
@@ -31,11 +34,12 @@ class RafacaMsg(BaseWidget):
 
         self.sendMsg.value = self.sendMsgClick
         self.conn.value = self.connClick
+        self.srv.value = self.srvClick
 
         self._formset = [ 
             (' ', 'Title', ' '),
             {
-                'Conexao': [('User'), ('IP', 'host', 'conn'), ('Errors'), ' '],
+                'Conexao': [('User'), ('IP', 'host', 'conn'), (' ', 'srv', ' '), ('Errors'), ' '],
                 'Mensagens': ['mensagens', ('mensagem', 'sendMsg'), ' ']
             }
         ]
@@ -47,7 +51,10 @@ class RafacaMsg(BaseWidget):
                 self.sendMsg.click()
         event.accept()
     def sendMsgClick(self):
-        self.cli.sendMsg(self.mensagem.value)
+        if(self.isServer):
+            self.mySrv.ims.send_message(self.mensagem.value)
+        else:
+            self.cli.sendMsg(self.mensagem.value)
         self.mensagens.value += "\n[Você]: " + self.mensagem.value
         self.mensagem.value = ''
         pass
@@ -63,10 +70,26 @@ class RafacaMsg(BaseWidget):
         elif(self.User.value == ''):
             self.Errors.value += '\nFavor colocar um usuario!'
             return
-
+        self.srv.enabled = False
         self.cli = cliente(self.IP.value, int(self.host.value), self.User.value, self)
-        self.Errors.value += '\nConectado em: ' + self.IP.value + ':' + self.host.value
+        #self.Errors.value += '\nConectado em: ' + self.IP.value + ':' + self.host.value
+        self.writeLog('Conectado em: ' + self.IP.value + ':' + self.host.value)
+        self.IP.enabled = False
+        self.host.enabled = False
+        self.User.enabled = False
         pass
+
+    def srvClick(self):
+        if(self.isServer == False):
+            self.mySrv = Controller()
+            self.mySrv.startServer(self)
+            self.IP.enabled = False
+            self.host.enabled = False
+            self.User.enabled = False
+            self.isServer = True
+            self.writeLog("Servidor iniciado")
+        pass
+
     @pyqtSlot(str)
     def writeLog(self, value):
         self.Errors.enabled = True

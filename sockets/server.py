@@ -1,72 +1,99 @@
 from threading import Thread
+from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 import socket
 
 class servidor():
     def __init__(self):
-        self.IP = '127.0.0.1'
+        self.IP = ''
         self.port = '5050'
+        self.sock = None
+        self.peers = []
+        self.clientes = {}
         pass
-
-sock, peers = None, []
-clientes = {} # Add dictionary to peer as key and Cliente Name as value
 
 class IMS(object):
     MAX_CONNECTIONS = 5
 
-    def __init__(self):
+    def __init__(self, srv: servidor, qwd):
+        self.srv = srv
+        self.qwd = qwd
         self.setup()
+        self.setupThread()
         for i in range(IMS.MAX_CONNECTIONS):
-            thread = IMS.Connection()
+            thread = IMS.Connection(self.srv, self.qwd.worker)
             thread.daemon = True
             thread.start()
 
     def setup(self):
         global sock
-        self.server = servidor()  
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         #sock.setsockopt(socket.SOL_SOCKET, 1)
-        sock.bind((self.server.IP, int(self.server.port),))
+        sock.bind((self.srv.IP, int(self.srv.port),))
         sock.listen(10)
 
     def send_message(self, message):
-        for peer in peers:
-            if(message is bytes):
-                peer.sendall('[SERVER]: ' + message)
+        for peer in self.srv.peers:
+            if(isinstance(message, str)):
+                peer.sendall(('[SERVER]: ' + message).encode())
             else:
                 peer.sendall(('[SERVER]: ' + message.decode()).encode())
+    def setupThread(self):
+        self.qwd.thread = QThread()
+        self.qwd.worker = IMS.QTConnection()
+        self.qwd.worker.moveToThread(self.qwd.thread)
+        self.qwd.worker.sendErr.connect(self.qwd.writeLog)
+        self.qwd.worker.sendMsg.connect(self.qwd.writeMsg)
 
-    class Connection(Thread):
+    class QTConnection(QObject):
+        sendMsg = pyqtSignal(str)
+        sendErr = pyqtSignal(str)
         def __init__(self):
+            super().__init__()
+        def emitMsg(self, msg: str):
+            self.sendMsg.emit(msg)
+            pass
+        def emitErr(self, msg: str):
+            self.sendErr.emit("Desconectado")
+            pass
+        
+    class Connection(Thread):
+        def __init__(self, srv: servidor, qtconn):
+            self.srv = srv
+            self.conn = qtconn
             Thread.__init__(self)
         def run(self):
             peer, addr = sock.accept()
-            peers.append(peer)
+            self.srv.peers.append(peer)
             while True:
                 #try:
                 message = peer.recv(1024)
                 if("101:" in message.decode()):
                     self.addNewCliente(message, peer)
                     continue
-                print(message.decode())
-                for other in peers:
-                    if peer != other:
-                        other.sendall(message)
-                #except ConnectionResetError:
-                #    print(clientes[peer] + " se desconectou")
-                #    peers.remove(peer)
-                #    clientes.pop(peer)
+                self.conn.emitMsg(message.decode())
+                for other in self.srv.peers:
+                    try:
+                        if peer != other:
+                            other.sendall(message)
+                    except ConnectionResetError:
+                        self.conn.emitMsg(self.srv.clientes[peer] + " se desconectou")
+                        self.srv.peers.remove(peer)
+                        self.srv.clientes.pop(peer)
         
         def addNewCliente(self, message, peer):
             clienteName = message.decode().replace("101:", "")
-            print(clienteName + " se conectou")
-            clientes[peer] = clienteName
+            self.conn.emitMsg(clienteName + " se conectou")
+            self.srv.clientes[peer] = clienteName
 
-ims = IMS()
-try:
-    while 1:
-        message = input()
-        ims.send_message(message.encode())
-except KeyboardInterrupt:
-    sock.close()
-    for peer in peers:
-        peer.close()
+class Controller():
+    def startServer(self, qwd):
+        self.srv = servidor()
+        self.ims = IMS(self.srv, qwd)
+        #except KeyboardInterrupt:
+        #    sock.close()
+        #    for peer in srv.peers:
+        #        peer.close()
+    def stopServer(self):
+        sock.close()
+        for peer in self.srv.peers:
+            peer.close()

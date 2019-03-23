@@ -1,6 +1,6 @@
 from threading import Thread
 from pyforms.controls   import ControlTextArea
-from PyQt5.QtCore import *
+from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 
 import socket
 class cliente():
