@@ -1,6 +1,7 @@
 from threading import Thread
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 import socket
+from sockets.client import IUTypes
 
 class servidor():
     def __init__(self):
@@ -14,20 +15,25 @@ class servidor():
 class IMS(object):
     MAX_CONNECTIONS = 5
 
-    def __init__(self, srv: servidor, qwd):
+    def __init__(self, srv: servidor, interfaceType: IUTypes, qwd='0'):
         self.srv = srv
         self.qwd = qwd
         self.setup()
-        self.setupThread()
-        for i in range(IMS.MAX_CONNECTIONS):
-            thread = IMS.Connection(self.srv, self.qwd.worker)
-            thread.daemon = True
-            thread.start()
+        if(interfaceType == IUTypes.PyForms):
+            self.setupThread()
+            for i in range(IMS.MAX_CONNECTIONS):
+                thread = IMS.Connection(self.srv, self.qwd.worker)
+                thread.daemon = True
+                thread.start()
+        elif(interfaceType == IUTypes.Terminal):
+            for i in range(IMS.MAX_CONNECTIONS):
+                thread = IMS.Connection(self.srv, IMS.TerminalConnection())
+                thread.daemon = True
+                thread.start()
 
     def setup(self):
         global sock
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #sock.setsockopt(socket.SOL_SOCKET, 1)
         sock.bind((self.srv.IP, int(self.srv.port),))
         sock.listen(10)
 
@@ -44,6 +50,12 @@ class IMS(object):
         self.qwd.worker.sendErr.connect(self.qwd.writeLog)
         self.qwd.worker.sendMsg.connect(self.qwd.writeMsg)
 
+    class TerminalConnection():
+        def emitMsg(self, msg: str):
+            print(msg)
+        def emitErr(self, msg: str):
+            print(msg)
+
     class QTConnection(QObject):
         sendMsg = pyqtSignal(str)
         sendErr = pyqtSignal(str)
@@ -55,12 +67,12 @@ class IMS(object):
         def emitErr(self, msg: str):
             self.sendErr.emit("Desconectado")
             pass
-        
     class Connection(Thread):
         def __init__(self, srv: servidor, qtconn):
             self.srv = srv
             self.conn = qtconn
             Thread.__init__(self)
+    
         def run(self):
             peer, addr = sock.accept()
             self.srv.peers.append(peer)
@@ -86,13 +98,9 @@ class IMS(object):
             self.srv.clientes[peer] = clienteName
 
 class Controller():
-    def startServer(self, qwd):
+    def startServer(self, interfaceType: IUTypes , qwd='0'):
         self.srv = servidor()
-        self.ims = IMS(self.srv, qwd)
-        #except KeyboardInterrupt:
-        #    sock.close()
-        #    for peer in srv.peers:
-        #        peer.close()
+        self.ims = IMS(self.srv, interfaceType, qwd)
     def stopServer(self):
         sock.close()
         for peer in self.srv.peers:
