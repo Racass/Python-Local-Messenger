@@ -3,13 +3,13 @@ from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 from sockets.Exceptions import *
 from enum import Enum
 import socket
+from threading import Thread
 
 class IUTypes(Enum):
     PyForms = 1,
     Terminal = 2
 
 class cliente():
-
     def __init__(self, IP: str, porta: int, clientName: str, clientType: IUTypes, interfaceRef='0'):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -20,37 +20,32 @@ class cliente():
         self.name = clientName
         self.sysSendMsg(101, self.name) #Send 101 code to tell name of the client to server
         if(clientType == IUTypes.PyForms): #Generates a thread ready to write on Qt Objects
-            self.qwd = interfaceRef
-            self.setupQtThread()
-        pass
+            self.qwd = interfaceRef    
+        self.thread = ReplyHandler(self.sock, self.qwd.worker)
+        self.thread.daemon = True
+        self.thread.start()
     
     def sendMsg(self, message: str): #Send user message
         self.sock.sendall(('[' + self.name + ']: ' + message).encode())
-
     def sysSendMsg(self, code: int, message: str): #send a system message (not to be shown)
         self.sock.sendall((str(code) + ':' + message).encode())
+    def killConn(self):
+        self.sysSendMsg(100, "Desconectado")
+    
 
-    def setupQtThread(self):
-        self.qwd.thread = QThread()
-        self.qwd.worker = ReplyHandler(self.sock)
-        self.qwd.worker.moveToThread(self.qwd.thread)
-        self.qwd.worker.sendErr.connect(self.qwd.writeLog)
-        self.qwd.worker.sendMsg.connect(self.qwd.writeMsg)
-        self.qwd.thread.started.connect(self.qwd.worker.run)
-        self.qwd.thread.start()
-
-class ReplyHandler(QObject):
-    sendMsg = pyqtSignal(str)
-    sendErr = pyqtSignal(str)
-    def __init__(self, sock):
+class ReplyHandler(Thread):
+    shouldRun = True
+    def __init__(self, sock, qtConn):
         self.sock = sock
+        self.qtConn = qtConn
         super().__init__()
-    @pyqtSlot()
+    def killMe(self):
+        self.shouldRun = False
     def run(self):
-        while True:
+        while self.shouldRun:
             try:
                 reply = self.sock.recv(1024)
-                self.sendMsg.emit(reply.decode())
+                self.qtConn.sendMsg.emit(reply.decode())
             except ConnectionResetError:
-                self.sendErr.emit("Desconectado")
+                self.qtConn.sendErr.emit("Desconectado")
                 return
