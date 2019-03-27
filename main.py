@@ -13,7 +13,7 @@ from PyQt5.QtCore import *
 from PyQt5 import QtWidgets
 
 from sockets.client import cliente
-from sockets.client import IUTypes
+from sockets.enums.IUTypes import IUTypes
 
 from SocketAccess import ClientAccess
 from SocketAccess import ServerAccess

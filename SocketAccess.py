@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from sockets.client import IUTypes
+from sockets.enums.IUTypes import IUTypes
 from sockets.client import cliente
 from sockets.Exceptions import ConnErr
-from sockets.server import Controller
+from sockets.server.controller import Controller
+from sockets.server.Adapters.PyFormsAdapted import PyFormsAdapted
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 
 class Access(ABC):
@@ -52,6 +53,7 @@ class ClientAccess(Access):
         self.interface.worker.sendErr.connect(self.interface.writeLog)
         self.interface.worker.sendMsg.connect(self.interface.writeMsg)
         self.interface.thread.start()
+        pass
 
 class ServerAccess(Access):
     def __init__(self, InterfaceType: IUTypes, Interface):
@@ -60,9 +62,11 @@ class ServerAccess(Access):
         return
     def ConnectStart(self) -> bool:
         self.mySrv = Controller()
-        self.mySrv.startServer(self.interfaceType, self.interface)
+        self.adapter = PyFormsAdapted(self.interface)
+        self.mySrv.startServer(self.adapter)
+        pass
     def sendMsg(self, message: str):
-        self.mySrv.ims.send_message(message)
+        self.mySrv.sendMessage(message)
         return
     def forceDisconnect(self, clientName: str):
         self.mySrv.forceUserDiscon(clientName)
@@ -70,7 +74,6 @@ class ServerAccess(Access):
     def connKill(self):
         raise NotImplementedError
         pass
-
 
 
 class QTConnection(QObject):

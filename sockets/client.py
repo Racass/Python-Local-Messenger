@@ -1,13 +1,10 @@
 from pyforms.controls   import ControlTextArea
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 from sockets.Exceptions import *
-from enum import Enum
+
 import socket
 from threading import Thread
-
-class IUTypes(Enum):
-    PyForms = 1,
-    Terminal = 2
+from sockets.enums.IUTypes import IUTypes
 
 class cliente():
     def __init__(self, IP: str, porta: int, clientName: str, clientType: IUTypes, interfaceRef='0'):
