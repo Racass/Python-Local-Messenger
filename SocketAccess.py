@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from sockets.enums.IUTypes import IUTypes
-from sockets.client import cliente
+from sockets.client.cliente import cliente
 from sockets.Exceptions import ConnErr
 from sockets.server.controller import Controller
 from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
@@ -21,18 +21,19 @@ class Access(ABC):
         pass
 
 class ClientAccess(Access):
-    def __init__(self, IP: str, port: int, clientName: str, InterfaceType: IUTypes, Interface):
+    adapter = None
+    def __init__(self, IP: str, port: int, clientName: str, interfaceType: IUTypes, Interface):
         self.IP = IP
         self.port = port
         self.clientName = clientName
-        self.iu = InterfaceType
+        self.iu = interfaceType
         self.interface = Interface
-        if(self.interface.worker is None):
-            self.setupQtThread()
+        if(ClientAccess.adapter is None and self.iu == IUTypes.PyForms):
+            ClientAccess.adapter = PyFormsAdapted(self.interface)
         return
     def ConnectStart(self) -> bool:
         try:
-            self.cli = cliente(self.IP, int(self.port), self.clientName, self.iu, self.interface)
+            self.cli = cliente(self.IP, int(self.port), self.clientName, ClientAccess.adapter)
             return True
         except Exception as e:
             print(e)
@@ -45,14 +46,6 @@ class ClientAccess(Access):
         return
     def connKill(self):
         self.cli.killConn()
-        pass
-    def setupQtThread(self):
-        self.interface.thread = QThread()
-        self.interface.worker = QTConnection()
-        self.interface.worker.moveToThread(self.interface.thread)
-        self.interface.worker.sendErr.connect(self.interface.writeLog)
-        self.interface.worker.sendMsg.connect(self.interface.writeMsg)
-        self.interface.thread.start()
         pass
 
 class ServerAccess(Access):

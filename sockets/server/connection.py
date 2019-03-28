@@ -20,6 +20,7 @@ class Connection(Thread):
             try:
                 message = peer.recv(1024)
             except ConnectionAbortedError:
+                print("erro de conexão")
                 return
             except Exception as e:
                 print(e)
@@ -85,5 +86,6 @@ class Connection(Thread):
         self.interface.receiveMsg(cliente.name + " se desconectou")
         self.interface.receiveSysMsg(cliente.name + " se desconectou")
         self.interface.receiveClientDscn(cliente.name)
+        cliente.peer.close()
         self.srv.clients.remove(cliente)
         self.server.recreateThread()

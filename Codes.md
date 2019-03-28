@@ -2,5 +2,9 @@
 
 Short list of codes used in the system
 
-100 - Disconnected (Client side)
+## Client To Server
+
+100 - Disconnected
 101 - Connected succesfully
+
+## Server To Client

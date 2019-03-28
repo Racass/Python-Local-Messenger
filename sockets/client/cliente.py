@@ -2,8 +2,7 @@ import socket
 
 from sockets.enums.IUTypes import IUTypes
 
-from sockets.Exceptions.ConnErr import ConnErr
-from sockets.Exceptions.ClienteNotFound import ClienteNotFound
+from sockets.Exceptions import ConnErr, ClienteNotFound
 
 from sockets.Adapters.serverIUAdapter import Adapter
 from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
@@ -21,6 +20,7 @@ class cliente():
         self.name = clientName
         self.adapter = iuAdapter
         self.sysSendMsg(101, self.name) #Send 101 code to tell name of the client to server
+        self.createThread()
         
     
     def sendMsg(self, message: str): #Send user message
@@ -30,7 +30,7 @@ class cliente():
     def killConn(self):
         self.sysSendMsg(100, "Desconectado")
 
-    def createThread():
+    def createThread(self):
         self.thread = ReplyHandler(self.sock, self.adapter)
         self.thread.daemon = True
         self.thread.start()

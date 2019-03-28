@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from sockets.server.Adapters.serverIUAdapter import Adapter
+from sockets.Adapters.serverIUAdapter import Adapter
 from PyQt5.QtCore import pyqtSignal, QThread, QObject
 from pyforms.basewidget import BaseWidget
 
