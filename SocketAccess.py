@@ -3,7 +3,7 @@ from sockets.enums.IUTypes import IUTypes
 from sockets.client import cliente
 from sockets.Exceptions import ConnErr
 from sockets.server.controller import Controller
-from sockets.server.Adapters.PyFormsAdapted import PyFormsAdapted
+from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 
 class Access(ABC):
