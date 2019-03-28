@@ -159,7 +159,7 @@ class RafacaMsg(BaseWidget):
     
     @pyqtSlot(str)
     def removeCliente(self, clientName: str):
-        '''tempList = []
+        tempList = []
         for cli in self.clients.value:
             if(cli[0] != clientName):
                 tempList.append(cli[0])
@@ -169,7 +169,7 @@ class RafacaMsg(BaseWidget):
         for cliente in tempList:
             cli = [cliente]
             self.clients.__add__(cli)
-            self.clientesCombo.add_item(cliente)'''
+            self.clientesCombo.add_item(cliente)
         return
     
     def forceDescon(self):
