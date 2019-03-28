@@ -16,4 +16,3 @@ class Adapter(ABC):
     @abstractmethod
     def receiveClientDscn(self, clientName: str):
         pass
-    

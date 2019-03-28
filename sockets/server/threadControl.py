@@ -1,7 +1,7 @@
 from sockets.enums import IUTypes
 from sockets.server import serverInfo
 from sockets.server.connection import Connection
-from sockets.server.Adapters.serverIUAdapter import Adapter
+from sockets.Adapters.serverIUAdapter import Adapter
 import socket
 
 class ThreadControl(object):

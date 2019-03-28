@@ -1,8 +1,8 @@
 from sockets.server.serverInfo import serverInfo
 from sockets.server.threadControl import ThreadControl
 from sockets.enums.IUTypes import IUTypes
-from sockets.server.Adapters.serverIUAdapter import Adapter
-from sockets.server.Adapters.PyFormsAdapted import PyFormsAdapted
+from sockets.Adapters.serverIUAdapter import Adapter
+from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 
 class Controller():
     '''
