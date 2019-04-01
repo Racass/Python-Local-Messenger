@@ -50,6 +50,7 @@ class ReplyHandler(Thread):
         elif mensg.code == 202:
             if(mensg.client == self.client.name):
                 self.adapter.receiveSysMsg("O servidor forçou sua desconexão")
+                self.adapter.forcedToDisconn()
                 self.shouldRun = False
             else:
                 self.adapter.receiveMsg("O servidor desconectou: " + mensg.client)

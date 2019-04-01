@@ -21,6 +21,8 @@ class PyFormsAdapted(Adapter):
     def receiveClientDscn(self, clientName: str):
         self.interface.worker.receiveClientDscn(clientName)
         pass
+    def forcedToDisconn(self):
+        self.interface.worker.forcedToDisconn()
     def setupQtThread(self):
         self.interface.thread = QThread()
         self.interface.worker = QTConnection()

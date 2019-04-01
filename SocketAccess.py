@@ -4,6 +4,7 @@ from sockets.client.cliente import cliente
 from sockets.Exceptions import ConnErr
 from sockets.server.controller import Controller
 from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
+from sockets.Adapters.TerminalAdapted import TerminalAdapted
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 
 class Access(ABC):
@@ -30,6 +31,8 @@ class ClientAccess(Access):
         self.interface = Interface
         if(ClientAccess.adapter is None and self.iu == IUTypes.PyForms):
             ClientAccess.adapter = PyFormsAdapted(self.interface)
+        elif(self.iu == IUTypes.Terminal):
+            ClientAccess.adapter = TerminalAdapted()
         return
     def ConnectStart(self) -> bool:
         try:
@@ -38,8 +41,9 @@ class ClientAccess(Access):
         except Exception as e:
             print(e)
             return False
-        except ConnErr:
+        except ConnErr as e:
             self.isConnected = False
+            print(e)
             return False
     def sendMsg(self, message: str):
         self.cli.sendMsg(message)
@@ -49,13 +53,18 @@ class ClientAccess(Access):
         pass
 
 class ServerAccess(Access):
+    adapter = None
     def __init__(self, InterfaceType: IUTypes, Interface):
         self.interfaceType = InterfaceType
         self.interface = Interface
         return
     def ConnectStart(self) -> bool:
         self.mySrv = Controller()
-        self.adapter = PyFormsAdapted(self.interface)
+        if(self.adapter is None and self.interfaceType == IUTypes.PyForms):
+            self.adapter = PyFormsAdapted(self.interface)
+        elif(self.interfaceType == IUTypes.Terminal):
+            self.adapter = TerminalAdapted()
+         #self.adapter = PyFormsAdapted(self.interface)
         self.mySrv.startServer(self.adapter)
         pass
     def sendMsg(self, message: str):

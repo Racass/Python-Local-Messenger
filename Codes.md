@@ -16,4 +16,4 @@ Short list of codes used in the system
 
 - 200 - client X connected
 - 201 - client X disconnected
-- 202 - server disconnected client (you)
+- 202 - server disconnected client

@@ -175,6 +175,8 @@ class RafacaMsg(BaseWidget):
     @pyqtSlot()
     def forcedToDisconn(self):
         self.isConn = False
+        self.setConnInputs(True)
+        self.conn.label = 'Conectar'
 
     def forceDescon(self):
         self.access.forceDisconnect(self.clientesCombo.value)
