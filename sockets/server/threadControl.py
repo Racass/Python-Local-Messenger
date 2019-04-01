@@ -2,7 +2,9 @@ from sockets.enums import IUTypes
 from sockets.server import serverInfo
 from sockets.server.connection import Connection
 from sockets.Adapters.serverIUAdapter import Adapter
+from sockets.objs.message import message
 import socket
+import json
 
 class ThreadControl(object):
     MAX_CONNECTIONS = 5
@@ -21,13 +23,12 @@ class ThreadControl(object):
         sock.bind((self.srv.IP, int(self.srv.port),))
         sock.listen(10)
         self.srv.sock = sock
-
-    def send_message(self, message):
+        
+    def sendMsg(self, message: message):
+        js_objc = json.dumps(message.__dict__)
         for cliente in self.srv.clients:
-            if(isinstance(message, str)):
-                cliente.peer.sendall(('[SERVER]: ' + message).encode())
-            else:
-                cliente.peer.sendall(('[SERVER]: ' + message.decode()).encode())
+                cliente.peer.sendall((js_objc).encode())
+        pass
     
     def recreateThread(self):
         thread = Connection(self.srv, self.interface, self)

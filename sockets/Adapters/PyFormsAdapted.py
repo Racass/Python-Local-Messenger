@@ -29,6 +29,7 @@ class PyFormsAdapted(Adapter):
         self.interface.worker.sendMsg.connect(self.interface.writeMsg)
         self.interface.worker.newClient.connect(self.interface.receiveClient)
         self.interface.worker.removeClient.connect(self.interface.removeCliente)
+        self.interface.worker.forcDiscon.connect(self.interface.forcedToDisconn)
         self.interface.thread.start()
         pass
 
@@ -37,6 +38,7 @@ class QTConnection(QObject):
     sendErr = pyqtSignal(str)
     newClient = pyqtSignal(str)
     removeClient = pyqtSignal(str)
+    forcDiscon = pyqtSignal()
     def __init__(self):
         super().__init__()
     def receiveMsg(self, msg: str):
@@ -51,3 +53,5 @@ class QTConnection(QObject):
     def receiveClientDscn(self, clientName: str):
         self.removeClient.emit(clientName)
         pass
+    def forcedToDisconn(self):
+        self.forcDiscon.emit()

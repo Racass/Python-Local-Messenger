@@ -8,5 +8,7 @@ class cliente():
         self.peer = peer #peer is a socket connection of client
         self.name = name #name of the client
         self.addr = addr # IP address of the client
+        self.shouldRun = True
     def closeConnection(self):
+        self.shouldRun = False
         self.peer.close()

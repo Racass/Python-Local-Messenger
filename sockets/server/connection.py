@@ -3,8 +3,9 @@ from sockets.server.serverInfo import serverInfo
 from sockets.Adapters.PyFormsAdapted import Adapter
 from sockets.server.cliente import cliente
 from sockets.Exceptions.ClienteNotFound import ClienteNotFound
+from sockets.objs.message import message
 import socket
-
+import json
 class Connection(Thread):
     def __init__(self, srv: serverInfo, interface: Adapter, servidor):
         self.srv = srv
@@ -16,20 +17,18 @@ class Connection(Thread):
         peer, addr = self.srv.sock.accept() #TODO
         meuCli = cliente(peer, '', addr)
         self.srv.clients.append(meuCli)
-        while True:
+        while meuCli.shouldRun:
             try:
                 message = peer.recv(1024)
-            except ConnectionAbortedError:
-                print("erro de conexão")
+            except ConnectionAbortedError as e:
+                print("Conexão abortada. InnerError: " + str(e)) 
                 return
             except Exception as e:
-                print(e)
+                print("Erro inesperado. InnerError: " + str(e))
                 return
-            if(self.checkSysMsgs(message, peer)):
-                continue
-            self.interface.receiveMsg(message.decode())
+            self.prepareMessage(message, peer)
             self.transmitMessage(message, peer)
-
+    
     def transmitMessage(self, message, peer):
         for cliente in self.srv.clients:
                 try:
@@ -38,16 +37,8 @@ class Connection(Thread):
                 except ConnectionResetError:
                     self.removeCliente(peer)
 
-    def checkSysMsgs(self, message, peer) -> bool:
-        if("101:" in message.decode()):
-            self.addNewCliente(message, peer)
-            return True
-        elif("100" in message.decode()):
-            self.removeCliente(peer)
-            return True
-
-    def addNewCliente(self, message, peer):
-        clientName = message.decode().replace("101:", "")
+    def addNewCliente(self, msg: message, peer):
+        clientName = msg.client
         self.interface.receiveMsg(clientName + " se conectou")
         self.interface.receiveSysMsg(clientName + " se conectou")
         self.interface.receiveNewClient(clientName)
@@ -58,23 +49,26 @@ class Connection(Thread):
             return
         except ClienteNotFound:
             print("Cliente não encontrado")
+            self.interface.receiveSysMsg("Grave: cliente adicionado não está na lista de conexões. Não sei como isso aconteceu e nem se pode acontecer, mas enfim")
             return
         cli.name = clientName
 
+    def prepareMessage(self, msg, peer):
+        dic = msg
+        dic = json.loads(dic)
+        mensg = message(dic)
+        if mensg.code == 100:
+            self.removeCliente(peer)
+            #TODO retransmit that the client has disconnect
+            pass
+        elif mensg.code == 101:
+            self.addNewCliente(mensg, peer)
+            #TODO retransmit that the client has connected
+            pass
+        elif mensg.code == 300:
+            self.interface.receiveMsg('[' + mensg.client + ']: ' + mensg.msg)
+            pass
 
-    def removeCliente(self, message, peer):
-        try:
-            cliente = self.srv.searchByPeer(peer)
-        except Exception as e:
-            print(e)
-        except ClienteNotFound:
-            print("Cliente não encontrado")
-            return
-        self.interface.receiveMsg(cliente.name + " se desconectou")
-        self.interface.receiveSysMsg(cliente.name + " se desconectou")
-        self.interface.receiveClientDscn(cliente.name)
-        self.srv.clients.remove(cliente)
-        self.server.recreateThread()
     def removeCliente(self, peer):
         try:
             cliente = self.srv.searchByPeer(peer)
@@ -87,5 +81,6 @@ class Connection(Thread):
         self.interface.receiveSysMsg(cliente.name + " se desconectou")
         self.interface.receiveClientDscn(cliente.name)
         cliente.peer.close()
+        cliente.shouldRun = False
         self.srv.clients.remove(cliente)
         self.server.recreateThread()

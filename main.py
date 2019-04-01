@@ -172,9 +172,13 @@ class RafacaMsg(BaseWidget):
             self.clientesCombo.add_item(cliente)
         return
     
+    @pyqtSlot()
+    def forcedToDisconn(self):
+        self.isConn = False
+
     def forceDescon(self):
         self.access.forceDisconnect(self.clientesCombo.value)
-        self.removeCliente(str(self.clientesCombo.value))
+        #self.removeCliente(str(self.clientesCombo.value))
         pass
 
     def debugStart(self, type: int):

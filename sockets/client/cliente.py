@@ -9,6 +9,10 @@ from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 
 from sockets.client.ReplyHandler import ReplyHandler
 
+from sockets.objs.message import message
+
+import json
+
 class cliente():
     def __init__(self, IP: str, porta: int, clientName: str, iuAdapter: Adapter):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,14 +27,18 @@ class cliente():
         self.createThread()
         
     
-    def sendMsg(self, message: str): #Send user message
-        self.sock.sendall(('[' + self.name + ']: ' + message).encode())
-    def sysSendMsg(self, code: int, message: str): #send a system message (not to be shown)
-        self.sock.sendall((str(code) + ':' + message).encode())
+    def sendMsg(self, msg: str): #Send user message
+        data = message(code=300, msg=msg, client=self.name)
+        data = json.dumps(data.__dict__)
+        self.sock.sendall(data.encode())
+    def sysSendMsg(self, code: int, msg: str): #send a system message
+        data = message(code=code, msg=msg, client=self.name)
+        data = json.dumps(data.__dict__)
+        self.sock.sendall(data.encode())
     def killConn(self):
         self.sysSendMsg(100, "Desconectado")
 
     def createThread(self):
-        self.thread = ReplyHandler(self.sock, self.adapter)
+        self.thread = ReplyHandler(self.sock, self.adapter, self)
         self.thread.daemon = True
         self.thread.start()

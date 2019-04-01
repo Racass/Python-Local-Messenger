@@ -59,7 +59,7 @@ class ServerAccess(Access):
         self.mySrv.startServer(self.adapter)
         pass
     def sendMsg(self, message: str):
-        self.mySrv.sendMessage(message)
+        self.mySrv.sendMessage(message, 'SERVER')
         return
     def forceDisconnect(self, clientName: str):
         self.mySrv.forceUserDiscon(clientName)
