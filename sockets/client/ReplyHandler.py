@@ -3,7 +3,7 @@ from threading import Thread
 import socket
 
 from sockets.Adapters.serverIUAdapter import Adapter
-from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
+#from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 from sockets.objs.message import message
 from sockets.Exceptions.ForcedDisconn import ForceDisconnect
 

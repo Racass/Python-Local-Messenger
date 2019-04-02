@@ -2,7 +2,7 @@ from sockets.server.serverInfo import serverInfo
 from sockets.server.threadControl import ThreadControl
 from sockets.enums.IUTypes import IUTypes
 from sockets.Adapters.serverIUAdapter import Adapter
-from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
+#from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 from sockets.objs.message import message
 
 class Controller():

@@ -5,7 +5,7 @@ from sockets.enums.IUTypes import IUTypes
 from sockets.Exceptions import ConnErr, ClienteNotFound
 
 from sockets.Adapters.serverIUAdapter import Adapter
-from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
+#from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 
 from sockets.client.ReplyHandler import ReplyHandler
 

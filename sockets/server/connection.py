@@ -1,6 +1,6 @@
 from threading import Thread
 from sockets.server.serverInfo import serverInfo
-from sockets.Adapters.PyFormsAdapted import Adapter
+from sockets.Adapters.serverIUAdapter import Adapter
 from sockets.server.cliente import cliente
 from sockets.Exceptions.ClienteNotFound import ClienteNotFound
 from sockets.objs.message import message
