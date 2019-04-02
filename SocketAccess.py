@@ -3,9 +3,8 @@ from sockets.enums.IUTypes import IUTypes
 from sockets.client.cliente import cliente
 from sockets.Exceptions import ConnErr
 from sockets.server.controller import Controller
-from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
 from sockets.Adapters.TerminalAdapted import TerminalAdapted
-from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
+
 
 class Access(ABC):
     def __init__(self, IP: str, port: int, clientName: str, InterfaceType: IUTypes, Interface):
@@ -30,6 +29,7 @@ class ClientAccess(Access):
         self.iu = interfaceType
         self.interface = Interface
         if(ClientAccess.adapter is None and self.iu == IUTypes.PyForms):
+            from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
             ClientAccess.adapter = PyFormsAdapted(self.interface)
         elif(self.iu == IUTypes.Terminal):
             ClientAccess.adapter = TerminalAdapted()
@@ -61,6 +61,7 @@ class ServerAccess(Access):
     def ConnectStart(self) -> bool:
         self.mySrv = Controller()
         if(self.adapter is None and self.interfaceType == IUTypes.PyForms):
+            from sockets.Adapters.PyFormsAdapted import PyFormsAdapted
             self.adapter = PyFormsAdapted(self.interface)
         elif(self.interfaceType == IUTypes.Terminal):
             self.adapter = TerminalAdapted()
@@ -78,10 +79,11 @@ class ServerAccess(Access):
         pass
 
 
-class QTConnection(QObject):
+'''class QTConnection(QObject):
         sendMsg = pyqtSignal(str)
         sendErr = pyqtSignal(str)
         def __init__(self):
+            from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
             super().__init__()
         def emitMsg(self, msg: str):
             self.sendMsg.emit(msg)
@@ -91,4 +93,4 @@ class QTConnection(QObject):
             return
         def addNewClient(self, client: str):
             self.newClient.emit(client)
-            return
+            return'''
